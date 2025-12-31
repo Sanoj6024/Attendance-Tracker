@@ -13,6 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/Subjects", require("./routes/subjectRoutes"));
+app.use("/api/attendance", require("./routes/attendanceRoutes"));
 
 app.get("/", (req, res) => {
   res.send("Attendance Tracker API Running");
