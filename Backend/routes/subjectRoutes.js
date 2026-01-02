@@ -1,17 +1,17 @@
 const express = require("express");
-const { createSubject, getMySubjects, getStudentSubjects } = require("../controllers/subjectController");
-const { protect } = require("../middleware/authMiddleware");
-const { teacherOnly, studentOnly } = require("../middleware/roleMiddleware");
-
 const router = express.Router();
 
-// Teacher creates subject
-router.post("/", protect, teacherOnly, createSubject);
+const authMiddleware = require("../middleware/auth");
 
-// Teacher fetches own subjects
-router.get("/teacher", protect, teacherOnly, getMySubjects);
+const { teacherOnly, studentOnly } = require("../middleware/roleMiddleware");
+const {
+  createSubject,
+  getMySubjects,
+  getStudentSubjects,
+} = require("../controllers/subjectController");
 
-// Student fetches subjects (auto-sync)
-router.get("/student", protect, studentOnly, getStudentSubjects);
+router.post("/", authMiddleware, teacherOnly, createSubject);
+router.get("/teacher", authMiddleware, teacherOnly, getMySubjects);
+router.get("/student", authMiddleware, studentOnly, getStudentSubjects);
 
 module.exports = router;
