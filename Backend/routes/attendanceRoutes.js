@@ -1,18 +1,15 @@
 const express = require("express");
-const {
-  markAttendance,
-  getStudentAttendance
-} = require("../controllers/attendanceController");
-
-const { protect } = require("../middleware/authMiddleware");
-const { teacherOnly, studentOnly } = require("../middleware/roleMiddleware");
-
 const router = express.Router();
 
-// Teacher marks attendance
-router.post("/", protect, teacherOnly, markAttendance);
+const authMiddleware = require("../middleware/auth");
 
-// Student views attendance
-router.get("/student", protect, studentOnly, getStudentAttendance);
+const { teacherOnly, studentOnly } = require("../middleware/roleMiddleware");
+const {
+  markAttendance,
+  getStudentAttendance,
+} = require("../controllers/attendanceController");
+
+router.post("/mark", authMiddleware, teacherOnly, markAttendance);
+router.get("/student", authMiddleware, studentOnly, getStudentAttendance);
 
 module.exports = router;
