@@ -1,99 +1,53 @@
 import { useState } from "react";
-import axios from "../api/axios";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import DarkModeToggle from "../components/DarkModeToggle";
 
 const Register = () => {
-  const navigate = useNavigate();
-
   const [form, setForm] = useState({
     fullName: "",
     email: "",
     password: "",
     role: "student",
-    batch: "2022-2026",
-    semester: 5,
+    batch: "",
+    semester: "",
   });
 
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    try {
-      await axios.post("/auth/register", form);
-      alert("Registration successful ✅");
-      navigate("/");
-    } catch (err) {
-      console.error(err.response?.data || err);
-      alert(err.response?.data?.message || "Registration failed ❌");
-    }
+    await axios.post("http://localhost:5000/api/auth/register", form);
+    alert("Registered successfully ✅");
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ padding: "20px" }}>
-      <h2>Register</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded shadow w-96 text-black dark:text-white">
+        <div className="flex justify-between mb-4">
+          <h2 className="font-bold text-lg">Register</h2>
+          <DarkModeToggle />
+        </div>
 
-      <input
-        name="fullName"
-        placeholder="Full Name"
-        onChange={handleChange}
-        required
-      />
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+          <input className="border p-2 rounded text-black" name="fullName" placeholder="Full Name" onChange={handleChange} />
+          <input className="border p-2 rounded text-black" name="email" placeholder="Email" onChange={handleChange} />
+          <input type="password" className="border p-2 rounded text-black" name="password" placeholder="Password" onChange={handleChange} />
 
-      <br />
+          <select name="role" onChange={handleChange} className="border p-2 rounded text-black">
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+          </select>
 
-      <input
-        name="email"
-        type="email"
-        placeholder="Email"
-        onChange={handleChange}
-        required
-      />
+          <input className="border p-2 rounded text-black" name="batch" placeholder="Batch (2022-2026)" onChange={handleChange} />
+          <input className="border p-2 rounded text-black" name="semester" placeholder="Semester" onChange={handleChange} />
 
-      <br />
-
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        onChange={handleChange}
-        required
-      />
-
-      <br />
-
-      <select name="role" onChange={handleChange}>
-        <option value="student">Student</option>
-        <option value="teacher">Teacher</option>
-      </select>
-
-      <br />
-
-      <input
-        name="batch"
-        placeholder="Batch (eg: 2022-2026)"
-        value={form.batch}
-        onChange={handleChange}
-      />
-
-      <br />
-
-      <input
-        name="semester"
-        type="number"
-        value={form.semester}
-        onChange={handleChange}
-      />
-
-      <br /><br />
-
-      <button type="submit">Register</button>
-    </form>
+          <button className="bg-green-500 text-white py-2 rounded">
+            Register
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 

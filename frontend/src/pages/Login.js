@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useContext, useState } from "react";
+import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
-import { Link } from "react-router-dom";
+import DarkModeToggle from "../components/DarkModeToggle";
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -20,29 +20,30 @@ const Login = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded shadow w-96 text-black dark:text-white">
+        <div className="flex justify-between mb-4">
+          <h2 className="text-lg font-bold">Login</h2>
+          <DarkModeToggle />
+        </div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <br />
-
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <br />
-
-        <button type="submit">Login</button>
-      </form>
-
-      <p>
-        New user? <Link to="/register">Register here</Link>
-      </p>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <input
+            className="border p-2 rounded text-black"
+            placeholder="Email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            className="border p-2 rounded text-black"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button className="bg-blue-500 text-white py-2 rounded">
+            Login
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

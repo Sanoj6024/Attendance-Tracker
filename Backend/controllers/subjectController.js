@@ -3,6 +3,7 @@ const Subject = require("../models/Subjects");
 // Teacher creates subject
 const createSubject = async (req, res) => {
   try {
+    
     const { subjectName, batch, semester } = req.body;
 
     if (!subjectName || !batch || !semester) {

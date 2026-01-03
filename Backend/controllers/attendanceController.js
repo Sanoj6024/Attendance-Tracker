@@ -2,9 +2,9 @@ const Attendance = require("../models/Attendance");
 const Subject = require("../models/Subjects");
 
 /**
- * ================================
+ * =========================================
  * TEACHER → MARK ATTENDANCE
- * ================================
+ * =========================================
  * POST /api/attendance/mark
  */
 exports.markAttendance = async (req, res) => {
@@ -12,12 +12,12 @@ exports.markAttendance = async (req, res) => {
     const { subjectId, date, attendance } = req.body;
     const teacherId = req.user.id;
 
-    // 🔴 Validation
+    // ✅ Validation
     if (!subjectId || !date || !attendance || attendance.length === 0) {
       return res.status(400).json({ message: "Invalid data" });
     }
 
-    // 🔴 Prevent duplicate attendance for same subject + date
+    // ✅ Prevent duplicate attendance
     const alreadyMarked = await Attendance.findOne({
       subject: subjectId,
       date,
@@ -29,19 +29,18 @@ exports.markAttendance = async (req, res) => {
         .json({ message: "Attendance already marked for this date" });
     }
 
-    // 🔴 Verify subject exists
+    // ✅ Verify subject
     const subject = await Subject.findById(subjectId);
     if (!subject) {
       return res.status(404).json({ message: "Subject not found" });
     }
 
-    // 🔴 Convert request body into DB format
+    // ✅ Format records
     const records = attendance.map((item) => ({
       student: item.studentId,
-      status: item.status,
+      status: item.status, // "Present" | "Absent"
     }));
 
-    // 🔴 Save attendance
     const newAttendance = new Attendance({
       subject: subjectId,
       teacher: teacherId,
@@ -62,20 +61,66 @@ exports.markAttendance = async (req, res) => {
 };
 
 /**
- * ================================
- * STUDENT → VIEW ATTENDANCE
- * ================================
+ * =========================================
+ * STUDENT → VIEW ATTENDANCE (FIXED)
+ * =========================================
  * GET /api/attendance/student
  */
 exports.getStudentAttendance = async (req, res) => {
   try {
     const studentId = req.user.id;
 
-    const attendance = await Attendance.find({
+    const attendanceDocs = await Attendance.find({
       "records.student": studentId,
     }).populate("subject", "subjectName");
 
-    res.json(attendance);
+    const subjectMap = {};
+
+    attendanceDocs.forEach((doc) => {
+      if (!doc.subject) return;
+
+      const subjectId = doc.subject._id.toString();
+
+      if (!subjectMap[subjectId]) {
+        subjectMap[subjectId] = {
+          subjectId,
+          subjectName: doc.subject.subjectName,
+          totalClasses: 0,
+          presentCount: 0,
+          presentDates: [],
+        };
+      }
+
+      const record = doc.records.find(
+        (r) => r.student.toString() === studentId.toString()
+      );
+
+      if (record) {
+        subjectMap[subjectId].totalClasses += 1;
+
+        if (record.status === "Present") {
+          subjectMap[subjectId].presentCount += 1;
+          subjectMap[subjectId].presentDates.push(doc.date);
+        }
+      }
+    });
+
+    const result = Object.values(subjectMap).map((item) => ({
+      subjectId: item.subjectId,
+      subjectName: item.subjectName,
+      totalClasses: item.totalClasses,
+      presentCount: item.presentCount,
+      attendance: `${item.presentCount} / ${item.totalClasses}`,
+      percentage:
+        item.totalClasses === 0
+          ? 0
+          : Number(
+              ((item.presentCount / item.totalClasses) * 100).toFixed(1)
+            ),
+      presentDates: item.presentDates,
+    }));
+
+    res.json(result);
   } catch (error) {
     console.error("Student Attendance Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -83,9 +128,9 @@ exports.getStudentAttendance = async (req, res) => {
 };
 
 /**
- * ================================
+ * =========================================
  * TEACHER → VIEW ATTENDANCE BY SUBJECT
- * ================================
+ * =========================================
  * GET /api/attendance/subject/:subjectId
  */
 exports.getAttendanceBySubject = async (req, res) => {
