@@ -1,37 +1,45 @@
-import { useEffect, useState } from "react";
-import api from "../api/axios";
+import { useEffect, useState, useContext } from "react";
+import axios from "axios";
+import { AuthContext } from "../context/AuthContext";
 
 const StudentDashboard = () => {
-  const [summary, setSummary] = useState([]);
+  const { user } = useContext(AuthContext);
+  const [attendance, setAttendance] = useState([]);
 
   useEffect(() => {
-    api.get("/attendance/student").then((res) => {
-      setSummary(res.data.summary);
-    });
-  }, []);
+    if (!user) return;
+
+    const fetchAttendance = async () => {
+      const res = await axios.get("/attendance/student");
+      setAttendance(res.data);
+    };
+
+    fetchAttendance();
+  }, [user]);
+
+  const calculatePercentage = (records) => {
+    const total = records.length;
+    const present = records.filter((r) => r.status === "Present").length;
+    return ((present / total) * 100).toFixed(0);
+  };
 
   return (
     <div>
       <h2>Student Dashboard</h2>
 
-      {summary.map((item, index) => (
-        <div key={index}>
-          <h4>{item.subject}</h4>
-          <p>
-            {item.present}/{item.totalClasses} classes
-          </p>
+      {attendance.length === 0 && <p>No attendance records found</p>}
 
-          <div style={{ background: "#ddd", width: "200px" }}>
-            <div
-              style={{
-                background: "green",
-                width: `${item.percentage}%`,
-                color: "white",
-              }}
-            >
-              {item.percentage}%
-            </div>
-          </div>
+      {attendance.map((item) => (
+        <div key={item._id} style={{ marginBottom: "10px" }}>
+          <h4>{item.subject.subjectName}</h4>
+          <p>Date: {item.date}</p>
+          <p>
+            Attendance: {calculatePercentage(item.records)}%
+          </p>
+          <progress
+            value={calculatePercentage(item.records)}
+            max="100"
+          />
         </div>
       ))}
     </div>

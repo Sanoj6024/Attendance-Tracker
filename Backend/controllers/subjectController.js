@@ -1,7 +1,7 @@
 const Subject = require("../models/Subjects");
 
-// ✅ Teacher creates subject
-exports.createSubject = async (req, res) => {
+// Teacher creates subject
+const createSubject = async (req, res) => {
   try {
     const { subjectName, batch, semester } = req.body;
 
@@ -11,7 +11,7 @@ exports.createSubject = async (req, res) => {
 
     const subject = await Subject.create({
       subjectName,
-      teacher: req.user.id,
+      teacher: req.user._id,
       batch,
       semester,
     });
@@ -22,18 +22,18 @@ exports.createSubject = async (req, res) => {
   }
 };
 
-// ✅ Teacher fetches own subjects
-exports.getMySubjects = async (req, res) => {
+// Teacher fetches own subjects
+const getMySubjects = async (req, res) => {
   try {
-    const subjects = await Subject.find({ teacher: req.user.id });
+    const subjects = await Subject.find({ teacher: req.user._id });
     res.json(subjects);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// ✅ Student fetches subjects (AUTO SYNC)
-exports.getStudentSubjects = async (req, res) => {
+// Student fetches subjects
+const getStudentSubjects = async (req, res) => {
   try {
     const subjects = await Subject.find({
       batch: req.user.batch,
@@ -44,4 +44,10 @@ exports.getStudentSubjects = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+module.exports = {
+  createSubject,
+  getMySubjects,
+  getStudentSubjects,
 };
