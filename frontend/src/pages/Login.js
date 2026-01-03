@@ -1,41 +1,49 @@
-import { useState, useContext } from "react";
-import api from "../api/axios";
+import axios from "axios";
+import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Login = () => {
+  const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await api.post("/auth/login", { email, password });
-    login(res.data);
 
-    if (res.data.user.role === "teacher") {
-      navigate("/teacher");
-    } else {
-      navigate("/student");
-    }
+    const res = await axios.post("http://localhost:5000/api/auth/login", {
+      email,
+      password,
+    });
+
+    login(res.data.user, res.data.token);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <div style={{ padding: "20px" }}>
       <h2>Login</h2>
-      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-      <input
-        type="password"
-        placeholder="Password"
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button>Login</button>
-      <p>
-  Don’t have an account? <a href="/register">Register</a>
-</p>
 
-    </form>
+      <form onSubmit={handleSubmit}>
+        <input
+          placeholder="Email"
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <br />
+
+        <input
+          type="password"
+          placeholder="Password"
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <br />
+
+        <button type="submit">Login</button>
+      </form>
+
+      <p>
+        New user? <Link to="/register">Register here</Link>
+      </p>
+    </div>
   );
 };
 

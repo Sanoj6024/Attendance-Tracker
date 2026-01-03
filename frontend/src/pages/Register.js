@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../api/axios";
+import axios from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
@@ -10,43 +10,89 @@ const Register = () => {
     email: "",
     password: "",
     role: "student",
-    batch: "",
-    semester: "",
+    batch: "2022-2026",
+    semester: 5,
   });
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await api.post("/auth/register", form);
-    alert("Registration successful. Please login.");
-    navigate("/");
+
+    try {
+      await axios.post("/auth/register", form);
+      alert("Registration successful ✅");
+      navigate("/");
+    } catch (err) {
+      console.error(err.response?.data || err);
+      alert(err.response?.data?.message || "Registration failed ❌");
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} style={{ padding: "20px" }}>
       <h2>Register</h2>
 
-      <input name="fullName" placeholder="Full Name" onChange={handleChange} />
-      <input name="email" placeholder="Email" onChange={handleChange} />
+      <input
+        name="fullName"
+        placeholder="Full Name"
+        onChange={handleChange}
+        required
+      />
+
+      <br />
+
+      <input
+        name="email"
+        type="email"
+        placeholder="Email"
+        onChange={handleChange}
+        required
+      />
+
+      <br />
+
       <input
         name="password"
         type="password"
         placeholder="Password"
         onChange={handleChange}
+        required
       />
+
+      <br />
 
       <select name="role" onChange={handleChange}>
         <option value="student">Student</option>
         <option value="teacher">Teacher</option>
       </select>
 
-      <input name="batch" placeholder="Batch (e.g. 2022-2026)" onChange={handleChange} />
-      <input name="semester" placeholder="Semester" onChange={handleChange} />
+      <br />
 
-      <button>Register</button>
+      <input
+        name="batch"
+        placeholder="Batch (eg: 2022-2026)"
+        value={form.batch}
+        onChange={handleChange}
+      />
+
+      <br />
+
+      <input
+        name="semester"
+        type="number"
+        value={form.semester}
+        onChange={handleChange}
+      />
+
+      <br /><br />
+
+      <button type="submit">Register</button>
     </form>
   );
 };

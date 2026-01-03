@@ -1,85 +1,104 @@
 const Attendance = require("../models/Attendance");
-const User = require("../models/User");
-const Subject = require("../models/Subjects"); // or Subject.js (keep consistent)
+const Subject = require("../models/Subjects");
 
-// 👨‍🏫 TEACHER MARKS ATTENDANCE
+/**
+ * ================================
+ * TEACHER → MARK ATTENDANCE
+ * ================================
+ * POST /api/attendance/mark
+ */
 exports.markAttendance = async (req, res) => {
   try {
     const { subjectId, date, attendance } = req.body;
+    const teacherId = req.user.id;
 
-    // attendance = [{ studentId, status }]
+    // 🔴 Validation
+    if (!subjectId || !date || !attendance || attendance.length === 0) {
+      return res.status(400).json({ message: "Invalid data" });
+    }
 
+    // 🔴 Prevent duplicate attendance for same subject + date
+    const alreadyMarked = await Attendance.findOne({
+      subject: subjectId,
+      date,
+    });
+
+    if (alreadyMarked) {
+      return res
+        .status(400)
+        .json({ message: "Attendance already marked for this date" });
+    }
+
+    // 🔴 Verify subject exists
     const subject = await Subject.findById(subjectId);
     if (!subject) {
       return res.status(404).json({ message: "Subject not found" });
     }
 
-    // Teacher can mark only their subject
-    if (subject.teacher.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Access denied" });
-    }
+    // 🔴 Convert request body into DB format
+    const records = attendance.map((item) => ({
+      student: item.studentId,
+      status: item.status,
+    }));
 
-    const records = [];
+    // 🔴 Save attendance
+    const newAttendance = new Attendance({
+      subject: subjectId,
+      teacher: teacherId,
+      date,
+      records,
+    });
 
-    for (let entry of attendance) {
-      records.push({
-        student: entry.studentId,
-        subject: subjectId,
-        date,
-        status: entry.status,
-      });
-    }
+    await newAttendance.save();
 
-    await Attendance.insertMany(records, { ordered: false });
-
-    res.status(201).json({ message: "Attendance marked successfully" });
+    res.status(201).json({
+      message: "Attendance marked successfully",
+      attendance: newAttendance,
+    });
   } catch (error) {
-    // Duplicate attendance safe handling
-    if (error.code === 11000) {
-      return res.status(400).json({ message: "Attendance already marked for this date" });
-    }
-    res.status(500).json({ message: error.message });
+    console.error("Mark Attendance Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// 👨‍🎓 STUDENT VIEWS ATTENDANCE
+/**
+ * ================================
+ * STUDENT → VIEW ATTENDANCE
+ * ================================
+ * GET /api/attendance/student
+ */
 exports.getStudentAttendance = async (req, res) => {
   try {
-    const records = await Attendance.find({ student: req.user.id })
-      .populate("subject", "subjectName")
-      .sort({ date: 1 });
+    const studentId = req.user.id;
 
-    // Calculate summary
-    const summary = {};
+    const attendance = await Attendance.find({
+      "records.student": studentId,
+    }).populate("subject", "subjectName");
 
-    records.forEach((rec) => {
-      const subject = rec.subject.subjectName;
-
-      if (!summary[subject]) {
-        summary[subject] = { total: 0, present: 0 };
-      }
-
-      summary[subject].total += 1;
-      if (rec.status === "Present") {
-        summary[subject].present += 1;
-      }
-    });
-
-    const result = Object.keys(summary).map((subject) => {
-      const { total, present } = summary[subject];
-      return {
-        subject,
-        totalClasses: total,
-        present,
-        percentage: ((present / total) * 100).toFixed(2),
-      };
-    });
-
-    res.json({
-      attendance: records,
-      summary: result,
-    });
+    res.json(attendance);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Student Attendance Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+/**
+ * ================================
+ * TEACHER → VIEW ATTENDANCE BY SUBJECT
+ * ================================
+ * GET /api/attendance/subject/:subjectId
+ */
+exports.getAttendanceBySubject = async (req, res) => {
+  try {
+    const { subjectId } = req.params;
+
+    const attendance = await Attendance.find({ subject: subjectId })
+      .populate("records.student", "fullName rollNo")
+      .sort({ date: -1 });
+
+    res.json(attendance);
+  } catch (error) {
+    console.error("Subject Attendance Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
