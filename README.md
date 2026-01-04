@@ -64,16 +64,19 @@ AttendEase allows teachers to create subjects and mark attendance, while student
 ## 🧪 API Endpoints (Sample)
 
 # Auth
-POST /api/auth/register
-POST /api/auth/login
+-POST /api/auth/register
+
+-POST /api/auth/login
 
 # Subjects
-POST /api/subjects
-GET /api/subjects/teacher
+-POST /api/subjects
+
+-GET /api/subjects/teacher
 
 # Attendance
-POST /api/attendance/mark
-GET /api/attendance/student
+-POST /api/attendance/mark
+
+-GET /api/attendance/student
 
 ## 👨‍💻 Author
 
