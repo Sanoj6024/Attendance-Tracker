@@ -1,48 +1,75 @@
 import { useContext, useState } from "react";
-import axios from "axios";
+import { Link } from "react-router-dom";
+import axios from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 const Login = () => {
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    const res = await axios.post("http://localhost:5000/api/auth/login", {
-      email,
-      password,
-    });
-
-    login(res.data.user, res.data.token);
+    try {
+      const res = await axios.post("/auth/login", { email, password });
+      login(res.data.user, res.data.token);
+    } catch {
+      setError("❌ Invalid email or password");
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded shadow w-96 text-black dark:text-white">
-        <div className="flex justify-between mb-4">
-          <h2 className="text-lg font-bold">Login</h2>
-          <DarkModeToggle />
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#121212]">
+      <div className="bg-[#181818] p-8 rounded-xl w-96 shadow-lg">
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        {/* 🔵 MAIN BRAND HEADING */}
+        <h1 className="text-3xl font-bold text-center mb-8 text-white">
+          AttendEase
+        </h1>
+
+        {/* 🔵 FORM TITLE */}
+        <h2 className="text-xl font-semibold text-center mb-6 text-gray-300">
+          Login
+        </h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
-            className="border p-2 rounded text-black"
+            type="email"
             placeholder="Email"
+            className="w-full bg-[#121212] border border-[#282828] p-3 rounded text-white focus:outline-none focus:border-[#1DB954]"
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
+
           <input
             type="password"
-            className="border p-2 rounded text-black"
             placeholder="Password"
+            className="w-full bg-[#121212] border border-[#282828] p-3 rounded text-white focus:outline-none focus:border-[#1DB954]"
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
-          <button className="bg-blue-500 text-white py-2 rounded">
-            Login
+
+          <button className="w-full bg-[#1DB954] text-black font-semibold py-3 rounded-full hover:scale-105 transition">
+            Log In
           </button>
         </form>
+
+        {/* 🔴 ALERT BELOW FORM */}
+        {error && (
+          <div className="mt-4 bg-red-600 text-white text-sm p-3 rounded text-center">
+            {error}
+          </div>
+        )}
+
+        <p className="text-center mt-4 text-sm text-gray-400">
+          Don’t have an account?{" "}
+          <Link to="/register" className="text-[#1DB954] font-semibold">
+            Register
+          </Link>
+        </p>
       </div>
     </div>
   );

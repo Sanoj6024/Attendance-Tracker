@@ -1,99 +1,127 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 const StudentDashboard = () => {
   const { user, logout } = useContext(AuthContext);
   const [attendanceData, setAttendanceData] = useState([]);
 
+  // =========================
+  // Fetch attendance
+  // =========================
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
         const res = await axios.get("/attendance/student");
         setAttendanceData(res.data);
       } catch (err) {
-        console.error(err);
+        console.error("Attendance fetch error", err);
       }
     };
-    fetchAttendance();
-  }, []);
+
+    if (user) fetchAttendance();
+  }, [user]);
 
   if (!user) return null;
 
-  const getColor = (p) =>
-    p >= 75 ? "bg-green-500" : p >= 60 ? "bg-orange-400" : "bg-red-500";
+  // =========================
+  // Progress color logic
+  // =========================
+  const getColor = (percentage) => {
+    if (percentage >= 85) return "bg-green-500";
+    if (percentage >= 60) return "bg-orange-500";
+    return "bg-red-500";
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white">
-      {/* HEADER */}
-      <div className="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-800 shadow">
-        <h1 className="text-xl font-bold">Attendance Tracker</h1>
-        <div className="flex items-center gap-4">
-          <DarkModeToggle />
-          <span>{user.fullName}</span>
+    <div className="min-h-screen bg-[#121212] text-white">
+     <div className="flex justify-between items-center px-6 py-4 bg-black border-b border-[#282828]">
+        <h1 className="text-xl font-bold">AttendEase</h1>
+        <div className="flex gap-4 items-center">
+          <span className="text-lg">{user.fullName}</span>
           <button
             onClick={logout}
-            className="bg-red-500 text-white px-4 py-1 rounded"
+            className="bg-[#1DB954] text-black px-4 py-2 rounded-full font-semibold"
           >
             Logout
           </button>
         </div>
       </div>
 
+      {/* Page Title */}
+      <div className="text-center mt-6">
+        <h2 className="text-2xl font-bold">Student Dashboard</h2>
+      </div>
+
       {/* CONTENT */}
-      <div className="max-w-5xl mx-auto mt-6 px-4">
-        <div className="bg-white dark:bg-gray-800 p-5 rounded shadow mb-6">
-          <h2 className="text-lg font-semibold">Student Dashboard</h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Batch: {user.batch} | Semester: {user.semester}
-          </p>
-        </div>
+      <div className="max-w-6xl mx-auto p-6">
+        <p className="text-gray-400 mb-6">
+          Batch: <b>{user.batch}</b> | Semester: <b>{user.semester}</b>
+        </p>
 
         {attendanceData.length === 0 && (
-          <p className="text-center text-gray-500">
-            No attendance records found
-          </p>
+          <p className="text-gray-400">No attendance records found</p>
         )}
 
-        {attendanceData.map((sub) => (
-          <div
-            key={sub.subjectId}
-            className="bg-white dark:bg-gray-800 p-5 rounded shadow mb-5"
-          >
-            <h3 className="text-lg font-bold mb-2">{sub.subjectName}</h3>
+        {/* SUBJECT CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {attendanceData.map((sub) => (
+            <div
+              key={sub.subjectId}
+              className="bg-[#181818] p-5 rounded-xl shadow hover:bg-[#222]"
+            >
+              {/* SUBJECT NAME */}
+              <h2 className="text-lg font-semibold mb-2">
+                {sub.subjectName}
+              </h2>
 
-            <p>Total Classes: {sub.totalClasses}</p>
-            <p>
-              Attendance: {sub.presentCount}/{sub.totalClasses}
-            </p>
-            <p className="mb-2">Percentage: {sub.percentage}%</p>
+              {/* STATS */}
+              <div className="text-sm text-gray-300 mb-3">
+                <p>Total Classes: {sub.totalClasses}</p>
+                <p>
+                  Attendance: {sub.presentCount} / {sub.totalClasses}
+                </p>
+              </div>
 
-            <div className="h-3 bg-gray-300 rounded overflow-hidden mb-3">
-              <div
-                className={`h-full ${getColor(sub.percentage)}`}
-                style={{ width: `${sub.percentage}%` }}
-              />
+              {/* PERCENTAGE */}
+              <p className="mb-2">
+                Percentage:{" "}
+                <span className="font-semibold">
+                  {sub.percentage}%
+                </span>
+              </p>
+
+              {/* PROGRESS BAR */}
+              <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden mb-4">
+                <div
+                  className={`h-full ${getColor(sub.percentage)}`}
+                  style={{ width: `${sub.percentage}%` }}
+                ></div>
+              </div>
+
+              {/* PRESENT DATES */}
+              <details className="text-sm">
+                <summary className="cursor-pointer text-[#1DB954] font-medium">
+                  View Present Dates
+                </summary>
+
+                {sub.presentDates.length > 0 ? (
+                  <ul className="mt-2 list-disc ml-5 text-gray-300">
+                    {sub.presentDates.map((date, i) => (
+                      <li key={i}>
+                        {new Date(date).toLocaleDateString("en-GB")}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-gray-400">
+                    No present records
+                  </p>
+                )}
+              </details>
             </div>
-
-            <details>
-              <summary className="cursor-pointer font-medium">
-                Present Dates
-              </summary>
-              {sub.presentDates.length > 0 ? (
-                <ul className="list-disc ml-6 mt-2">
-                  {sub.presentDates.map((d, i) => (
-                    <li key={i}>
-                      {new Date(d).toLocaleDateString("en-GB")}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500 mt-2">No present records</p>
-              )}
-            </details>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
