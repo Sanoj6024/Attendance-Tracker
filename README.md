@@ -61,43 +61,22 @@ AttendEase allows teachers to create subjects and mark attendance, while student
 
 ---
 
-## 📁 Project Structure
+## 🧪 API Endpoints (Sample)
 
-Attendance_Tracker/
-│
-├── backend/
-│ ├── controllers/
-│ ├── models/
-│ ├── routes/
-│ ├── config/
-│ └── server.js
-│
-├── frontend/
-│ ├── src/
-│ │ ├── components/
-│ │ ├── pages/
-│ │ ├── context/
-│ │ └── api/
-│ └── build/
-│
-└── 
-
-##README.md🧪 API Endpoints (Sample)
-
-#Auth
+# Auth
 POST /api/auth/register
 POST /api/auth/login
 
-#Subjects
+# Subjects
 POST /api/subjects
 GET /api/subjects/teacher
 
-#Attendance
+# Attendance
 POST /api/attendance/mark
 GET /api/attendance/student
 
-##👨‍💻 Author
+## 👨‍💻 Author
 
-#Sanoj Shreyas Deo
-#Final-year B.Tech (CSE)
-#SOA University
+# Sanoj Shreyas Deo
+# Final-year B.Tech (CSE)
+# SOA University
