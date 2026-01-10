@@ -14,29 +14,41 @@ const Register = () => {
     semester: 5,
   });
 
-  const [error, setError] = useState("");
+  // 🆕 alert state
+  const [alert, setAlert] = useState({ type: "", message: "" });
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setAlert({ type: "", message: "" });
 
     try {
       await axios.post("/auth/register", form);
-      alert("Registered successfully ✅");
-      navigate("/");
+
+      setAlert({
+        type: "success",
+        message: "Registered successfully! Redirecting to login…",
+      });
+
+      setTimeout(() => navigate("/"), 2000);
     } catch {
-      setError("❌ User already registered with this email");
+      setAlert({
+        type: "error",
+        message: "User already registered with this email",
+      });
     }
+
+    // auto-clear error after 4s
+    setTimeout(() => setAlert({ type: "", message: "" }), 4000);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#121212]">
       <div className="bg-[#181818] p-8 rounded-xl w-96 shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6 text-white">
-           Register
+          Register
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -97,10 +109,16 @@ const Register = () => {
           </button>
         </form>
 
-        {/* 🔴 ALERT BELOW FORM */}
-        {error && (
-          <div className="mt-4 bg-red-600 text-white text-sm p-3 rounded text-center">
-            {error}
+        {/* 🆕 ALERT */}
+        {alert.message && (
+          <div
+            className={`mt-4 p-3 rounded text-sm text-center font-medium ${
+              alert.type === "success"
+                ? "bg-green-600 text-white"
+                : "bg-red-600 text-white"
+            }`}
+          >
+            {alert.message}
           </div>
         )}
 

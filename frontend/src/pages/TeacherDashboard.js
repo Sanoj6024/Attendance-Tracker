@@ -9,6 +9,10 @@ const TeacherDashboard = () => {
   const [students, setStudents] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [attendance, setAttendance] = useState({});
+  const [stats, setStats] = useState({});
+
+  // 🆕 alert state
+  const [alert, setAlert] = useState({ type: "", message: "" });
 
   const [subjectName, setSubjectName] = useState("");
   const [batch, setBatch] = useState("2022-2026");
@@ -28,17 +32,31 @@ const TeacherDashboard = () => {
 
   const fetchStudents = async (sub) => {
     setSelectedSubject(sub);
+
     const res = await axios.get(
       `/users/students?batch=${sub.batch}&semester=${sub.semester}`
     );
+
     const sorted = res.data.sort((a, b) =>
       a.fullName.localeCompare(b.fullName)
     );
+
     setStudents(sorted);
 
     const initial = {};
     sorted.forEach((s) => (initial[s._id] = "Present"));
     setAttendance(initial);
+
+    const statsRes = await axios.get(
+      `/attendance/subject/${sub._id}/stats`
+    );
+
+    const statsMap = {};
+    statsRes.data.forEach((s) => {
+      statsMap[s.studentId] = s;
+    });
+
+    setStats(statsMap);
   };
 
   const submitAttendance = async () => {
@@ -54,18 +72,32 @@ const TeacherDashboard = () => {
         attendance: records,
       });
 
-      alert("Attendance marked successfully ✅");
+      setAlert({
+        type: "success",
+        message: "Attendance marked successfully",
+      });
+
+      fetchStudents(selectedSubject);
     } catch (err) {
       if (
         err.response &&
         err.response.data.message ===
           "Attendance already marked for this date"
       ) {
-        alert("⚠️ Attendance already marked for today for this subject");
+        setAlert({
+          type: "warning",
+          message: "Attendance already marked for today",
+        });
       } else {
-        alert("❌ Failed to mark attendance");
+        setAlert({
+          type: "error",
+          message: "Failed to mark attendance",
+        });
       }
     }
+
+    // auto clear alert
+    setTimeout(() => setAlert({ type: "", message: "" }), 4000);
   };
 
   useEffect(() => {
@@ -78,7 +110,7 @@ const TeacherDashboard = () => {
     <div className="min-h-screen bg-[#121212] text-white">
       {/* Header */}
       <div className="flex justify-between items-center px-6 py-4 bg-black border-b border-[#282828]">
-        <h1 className="text-xl font-bold">AttendEase</h1>
+        <h1 className="text-xl font-bold">Mirae</h1>
         <div className="flex gap-4 items-center">
           <span className="text-lg">{user.fullName}</span>
           <button
@@ -90,7 +122,6 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
-      {/* Page Title */}
       <div className="text-center mt-6">
         <h2 className="text-2xl font-bold">Teacher Dashboard</h2>
       </div>
@@ -98,15 +129,16 @@ const TeacherDashboard = () => {
       <div className="max-w-6xl mx-auto p-6">
         {/* Create Subject */}
         <div className="bg-[#181818] p-5 rounded-lg mb-6">
-          <h3 className="font-semibold mb-5">➕ Create Subject</h3>
+          <h3 className="font-semibold mb-5">Create Subject</h3>
           <form onSubmit={createSubject} className="flex gap-3 flex-wrap">
-            <input
-              placeholder="Subject Name"
-              className="bg-[#121212] border border-[#282828] p-2 rounded"
-              value={subjectName}
-              onChange={(e) => setSubjectName(e.target.value)}
-              required
-            />
+           <input
+  placeholder="Subject Name"
+  className="bg-[#121212] border border-[#282828] p-2 rounded uppercase"
+  value={subjectName}
+  onChange={(e) => setSubjectName(e.target.value.toUpperCase())}
+  required
+/>
+
             <input
               placeholder="Batch"
               className="bg-[#121212] border border-[#282828] p-2 rounded"
@@ -145,42 +177,69 @@ const TeacherDashboard = () => {
         {students.length > 0 && (
           <div className="mt-6 bg-[#181818] p-5 rounded-lg">
             <h3 className="font-semibold mb-3">Mark Attendance</h3>
-           <table className="w-full text-base">
-  <thead className="text-gray-400 border-b border-[#282828]">
-    <tr>
-      <th className="py-3 text-center w-16">#</th>
-      <th className="py-3 text-left">Name</th>
-      <th className="py-3 text-center w-40">Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    {students.map((s, i) => (
-      <tr
-        key={s._id}
-        className="border-b border-[#282828] hover:bg-[#2A2A2A]"
-      >
-        <td className="py-3 text-center">{i + 1}</td>
-        <td className="py-3 text-left font-medium">{s.fullName}</td>
-        <td className="py-3 text-center">
-          <select
-            className="bg-[#121212] border border-[#282828] rounded px-3 py-1"
-            value={attendance[s._id]}
-            onChange={(e) =>
-              setAttendance({
-                ...attendance,
-                [s._id]: e.target.value,
-              })
-            }
-          >
-            <option>Present</option>
-            <option>Absent</option>
-          </select>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
 
+            {/* 🆕 ALERT */}
+            {alert.message && (
+              <div
+                className={`mb-4 p-3 rounded text-sm font-medium ${
+                  alert.type === "success"
+                    ? "bg-green-600 text-white"
+                    : alert.type === "warning"
+                    ? "bg-yellow-600 text-black"
+                    : "bg-red-600 text-white"
+                }`}
+              >
+                {alert.message}
+              </div>
+            )}
+
+            <table className="w-full text-base">
+              <thead className="text-gray-400 border-b border-[#282828]">
+                <tr>
+                  <th className="py-3 text-center w-16">#</th>
+                  <th className="py-3 text-left">Name</th>
+                  <th className="py-3 text-center w-40">Status</th>
+                  <th className="py-3 text-center w-40">Classes</th>
+                  <th className="py-3 text-center w-32">%</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {students.map((s, i) => {
+                  const stat = stats[s._id];
+                  return (
+                    <tr
+                      key={s._id}
+                      className="border-b border-[#282828] hover:bg-[#2A2A2A]"
+                    >
+                      <td className="py-3 text-center">{i + 1}</td>
+                      <td className="py-3">{s.fullName}</td>
+                      <td className="py-3 text-center">
+                        <select
+                          className="bg-[#121212] border border-[#282828] rounded px-3 py-1"
+                          value={attendance[s._id]}
+                          onChange={(e) =>
+                            setAttendance({
+                              ...attendance,
+                              [s._id]: e.target.value,
+                            })
+                          }
+                        >
+                          <option>Present</option>
+                          <option>Absent</option>
+                        </select>
+                      </td>
+                      <td className="py-3 text-center">
+                        {stat ? `${stat.present} / ${stat.total}` : "—"}
+                      </td>
+                      <td className="py-3 text-center">
+                        {stat ? `${stat.percentage}%` : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
 
             <button
               onClick={submitAttendance}

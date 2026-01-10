@@ -11,11 +11,11 @@ const createSubject = async (req, res) => {
     }
 
     const subject = await Subject.create({
-      subjectName,
-      teacher: req.user._id,
-      batch,
-      semester,
-    });
+  subjectName: subjectName.trim().toUpperCase(),
+  teacher: req.user._id,
+  batch,
+  semester,
+});
 
     res.status(201).json(subject);
   } catch (error) {
