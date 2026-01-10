@@ -8,7 +8,7 @@ Mirae allows teachers to create subjects and mark attendance, while students can
 ## 🚀 Live Demo
 
 - **Frontend (Vercel):**  
-  https://attendance-tracker-rosy.vercel.app/
+  https://mirae-rosy.vercel.app/
 
 - **Backend (Render):**  
   https://attendance-tracker-5ptj.onrender.com/
