@@ -7,11 +7,18 @@ const { teacherOnly } = require("../middleware/roleMiddleware");
 const {
   markAttendance,
   getStudentAttendance,
-  getAttendanceBySubject,
+  getSubjectAttendanceStats,
 } = require("../controllers/attendanceController");
 
 router.post("/mark", auth, teacherOnly, markAttendance);
 router.get("/student", auth, getStudentAttendance);
-router.get("/subject/:subjectId", auth, teacherOnly, getAttendanceBySubject);
+
+// 🆕 Teacher → cumulative subject stats (multi-teacher)
+router.get(
+  "/subject/:subjectId/stats",
+  auth,
+  teacherOnly,
+  getSubjectAttendanceStats
+);
 
 module.exports = router;
