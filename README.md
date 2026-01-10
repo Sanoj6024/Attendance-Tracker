@@ -1,17 +1,17 @@
-# AttendEase 🎓  
+# Mirae 🎓  
 A full-stack Attendance Management System built using the **MERN stack**.
 
-AttendEase allows teachers to create subjects and mark attendance, while students can securely log in and track their attendance subject-wise with percentages — all in a modern, Spotify-themed UI.
+Mirae allows teachers to create subjects and mark attendance, while students can securely log in and track their attendance subject-wise with percentages — all in a modern, Spotify-themed UI.
 
 ---
 
 ## 🚀 Live Demo
 
 - **Frontend (Vercel):**  
-  https://attendace-tracker-kappa-two.vercel.app/
+  https://attendance-tracker-rosy.vercel.app/
 
 - **Backend (Render):**  
-  https://attendease-backend-riez.onrender.com/
+  https://attendance-tracker-5ptj.onrender.com/
 
 ---
 
