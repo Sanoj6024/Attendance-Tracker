@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "https://attendease-backend-riez.onrender.com/api",
+  baseURL: "https://attendance-tracker-5ptj.onrender.com/api",
 });
 
 instance.interceptors.request.use(
